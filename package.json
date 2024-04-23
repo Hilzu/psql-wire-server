@@ -1,0 +1,36 @@
+{
+  "name": "psql-wire-server",
+  "version": "0.0.0",
+  "description": "PostgreSQL Wire Protocol Server",
+  "main": "src/main.mjs",
+  "type": "module",
+  "engines": {
+    "node": ">=21.7.3",
+    "npm": ">=10.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Hilzu/psql-wire-server.git"
+  },
+  "author": "",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/Hilzu/psql-wire-server/issues"
+  },
+  "homepage": "https://github.com/Hilzu/psql-wire-server#readme",
+  "scripts": {
+    "dev": "node --watch .",
+    "format": "prettier --write .",
+    "start": "node .",
+    "test": "concurrently npm:test:*",
+    "test:format": "prettier --check .",
+    "test:lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.1.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.1.1",
+    "globals": "^15.0.0",
+    "prettier": "3.2.5"
+  }
+}
