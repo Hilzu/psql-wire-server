@@ -1,5 +1,6 @@
 import { createServer } from "node:net";
 import ByteBuffer from "./ByteBuffer.mjs";
+import { decodeClientMessage } from "./PgClientMessage.mjs";
 
 const noSSLResponse = new Uint8Array(["N".charCodeAt(0)]);
 
@@ -22,6 +23,19 @@ const readyForQueryResponse = new ByteBuffer(6)
   .writeUint8("I".charCodeAt(0))
   .asUint8Array();
 
+const handleMessage = (msg, socket) => {
+  console.log("Received message", msg);
+  if (msg.type === "sslRequest") {
+    socket.write(noSSLResponse);
+  } else if (msg.type === "startup") {
+    socket.write(authOkResponse);
+    socket.write(backendKeyDataResponse);
+    socket.write(readyForQueryResponse);
+  } else {
+    throw new Error("Unknown message type");
+  }
+};
+
 const handleConnection = async (socket) => {
   const remoteAddress = {
     address: socket.remoteAddress,
@@ -31,17 +45,14 @@ const handleConnection = async (socket) => {
   console.log("Client connected", remoteAddress);
 
   for await (const data of socket) {
-    console.log("Data", data);
-    socket.write(noSSLResponse);
-    socket.write(authOkResponse);
-    socket.write(backendKeyDataResponse);
-    socket.write(readyForQueryResponse);
+    const msg = decodeClientMessage(data);
+    handleMessage(msg, socket);
   }
 };
 
 const connectionListener = (socket) => {
   handleConnection(socket).catch((error) => {
-    console.error("Error handling connection", error);
+    console.error("Error handling connection:", error);
   });
 };
 
