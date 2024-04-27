@@ -3,7 +3,10 @@ import { decodeClientMessage } from "./PgClientMessage.mjs";
 import {
   AuthenticationResponse,
   BackendKeyData,
+  CommandComplete,
+  DataRow,
   ReadyForQuery,
+  RowDescription,
   SSLNegotiation,
 } from "./PgServerMessage.mjs";
 
@@ -22,6 +25,12 @@ const handleMessage = (msg, socket) => {
     writeMessage(socket, new ReadyForQuery());
   } else if (msg.type === "quit") {
     socket.end();
+  } else if (msg.type === "query") {
+    writeMessage(socket, new RowDescription());
+    writeMessage(socket, new DataRow(["1", "one"]));
+    writeMessage(socket, new DataRow(["2", "two"]));
+    writeMessage(socket, new CommandComplete());
+    writeMessage(socket, new ReadyForQuery());
   } else {
     throw new Error("Unknown message type");
   }

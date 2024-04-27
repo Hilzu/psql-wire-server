@@ -40,3 +40,61 @@ export class ReadyForQuery {
       .asUint8Array();
   }
 }
+
+export class RowDescription {
+  encode() {
+    return (
+      new ByteBuffer(51)
+        .writeUint8("T".charCodeAt(0))
+        .writeUint32(50) // length
+        .writeUint16(2) // field count
+        // field 1
+        .writeCString("id")
+        .writeUint32(0) // Object ID
+        .writeUint16(0) // Attribute number
+        .writeUint32(23) // Data type OID
+        .writeUint16(4) // Data type size
+        .writeUint32(-1) // Type modifier
+        .writeUint16(0) // Format code
+        // field 2
+        .writeCString("name")
+        .writeUint32(0) // Object ID
+        .writeUint16(0) // Attribute number
+        .writeUint32(25) // Data type OID
+        .writeUint16(-1) // Data type size
+        .writeUint32(-1) // Type modifier
+        .writeUint16(0) // Format code
+
+        .asUint8Array()
+    );
+  }
+}
+
+export class DataRow {
+  constructor(columns) {
+    this.columns = columns;
+  }
+
+  encode() {
+    return new ByteBuffer(19)
+      .writeUint8("D".charCodeAt(0))
+      .writeUint32(18) // length
+      .writeUint16(2) // column count
+      .writeUint32(1) // length of column 1
+      .writeString(this.columns[0])
+      .writeUint32(3)
+      .writeString(this.columns[1])
+      .asUint8Array();
+  }
+}
+
+export class CommandComplete {
+  command = "SELECT 1";
+  encode() {
+    return new ByteBuffer(14)
+      .writeUint8("C".charCodeAt(0))
+      .writeUint32(13)
+      .writeCString(this.command)
+      .asUint8Array();
+  }
+}
