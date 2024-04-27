@@ -2,16 +2,30 @@ export const decodeClientMessage = (buffer) => {
   switch (true) {
     case PGClientSSLNegotiation.isOfType(buffer):
       return new PGClientSSLNegotiation();
+
     case PGClientStartupMessage.isOfType(buffer):
       return PGClientStartupMessage.decode(buffer);
+
     case PGClientQuitMessage.isOfType(buffer):
       return new PGClientQuitMessage();
+
+    case PGClientQueryMessage.isOfType(buffer):
+      return PGClientQueryMessage.decode(buffer);
+
     default:
       console.error("Unknown client message:", buffer);
       throw new Error("Unknown client message");
   }
 };
 
+const getMessageLength = (buffer, byteOffset = 0) => {
+  const length = new DataView(buffer.buffer).getUint32(byteOffset);
+  const bufferLength = buffer.byteLength - byteOffset;
+  if (length !== bufferLength) throw new Error("Invalid message length");
+  return length;
+};
+
+// <Buffer 00 00 00 08 04 d2 16 2f>
 export class PGClientSSLNegotiation {
   type = "sslNegotiation";
 
@@ -39,8 +53,7 @@ export class PGClientStartupMessage {
   }
 
   static decode(buffer) {
-    const length = new DataView(buffer.buffer).getUint32(0);
-    if (length !== buffer.byteLength) throw new Error("Invalid message length");
+    const length = getMessageLength(buffer);
     let offset = 8;
     const message = new PGClientStartupMessage();
     const params = message.parameters;
@@ -57,9 +70,26 @@ export class PGClientStartupMessage {
   }
 }
 
+// <Buffer 58 00 00 00 04>
 export class PGClientQuitMessage {
   type = "quit";
   static isOfType(buffer) {
     return String.fromCharCode(buffer[0]) === "X";
+  }
+}
+
+export class PGClientQueryMessage {
+  type = "query";
+  query = "";
+
+  static isOfType(buffer) {
+    return String.fromCharCode(buffer[0]) === "Q";
+  }
+
+  static decode(buffer) {
+    const length = getMessageLength(buffer, 1);
+    const message = new PGClientQueryMessage();
+    message.query = buffer.toString("utf-8", 5, length - 1);
+    return message;
   }
 }
