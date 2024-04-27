@@ -1,7 +1,7 @@
 export const decodeClientMessage = (buffer) => {
   switch (true) {
-    case PGClientSSLRequest.isOfType(buffer):
-      return PGClientSSLRequest.decode(buffer);
+    case PGClientSSLNegotiation.isOfType(buffer):
+      return new PGClientSSLNegotiation();
     case PGClientStartupMessage.isOfType(buffer):
       return PGClientStartupMessage.decode(buffer);
     case PGClientQuitMessage.isOfType(buffer):
@@ -12,8 +12,8 @@ export const decodeClientMessage = (buffer) => {
   }
 };
 
-export class PGClientSSLRequest {
-  type = "sslRequest";
+export class PGClientSSLNegotiation {
+  type = "sslNegotiation";
 
   static isOfType(buffer) {
     return (
@@ -22,10 +22,6 @@ export class PGClientSSLRequest {
       buffer[6] === 0x16 &&
       buffer[7] === 0x2f
     );
-  }
-
-  static decode(buffer) {
-    return new PGClientSSLRequest();
   }
 }
 

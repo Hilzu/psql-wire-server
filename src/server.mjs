@@ -25,7 +25,7 @@ const readyForQueryResponse = new ByteBuffer(6)
 
 const handleMessage = (msg, socket) => {
   console.log("Received message", msg);
-  if (msg.type === "sslRequest") {
+  if (msg.type === "sslNegotiation") {
     socket.write(noSSLResponse);
   } else if (msg.type === "startup") {
     socket.write(authOkResponse);
