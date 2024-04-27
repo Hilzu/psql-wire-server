@@ -31,6 +31,8 @@ const handleMessage = (msg, socket) => {
     socket.write(authOkResponse);
     socket.write(backendKeyDataResponse);
     socket.write(readyForQueryResponse);
+  } else if (msg.type === "quit") {
+    socket.end();
   } else {
     throw new Error("Unknown message type");
   }

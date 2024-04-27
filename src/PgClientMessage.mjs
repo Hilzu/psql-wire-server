@@ -4,6 +4,8 @@ export const decodeClientMessage = (buffer) => {
       return PGClientSSLRequest.decode(buffer);
     case PGClientStartupMessage.isOfType(buffer):
       return PGClientStartupMessage.decode(buffer);
+    case PGClientQuitMessage.isOfType(buffer):
+      return new PGClientQuitMessage();
     default:
       console.error("Unknown client message:", buffer);
       throw new Error("Unknown client message");
@@ -56,5 +58,12 @@ export class PGClientStartupMessage {
       params.set(key, value);
     }
     return message;
+  }
+}
+
+export class PGClientQuitMessage {
+  type = "quit";
+  static isOfType(buffer) {
+    return String.fromCharCode(buffer[0]) === "X";
   }
 }
