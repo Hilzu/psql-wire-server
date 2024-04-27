@@ -80,7 +80,7 @@ export class RowDescription {
 
     for (const [index, field] of this.fields.entries()) {
       byteBuffer
-        .writeBuffer(nameBuffers[index])
+        .writeUint8Array(nameBuffers[index])
         .writeUint8(0x0)
         .writeUint32(field.tableObjectID)
         .writeUint16(field.columnAttributeNumber)
@@ -111,7 +111,7 @@ export class DataRow {
       .writeUint16(valueBuffers.length);
     for (const buffer of valueBuffers) {
       byteBuffer.writeUint32(buffer.length);
-      byteBuffer.writeBuffer(buffer);
+      byteBuffer.writeUint8Array(buffer);
     }
     return byteBuffer.asUint8Array();
   }
@@ -127,7 +127,7 @@ export class CommandComplete {
     return new ByteBuffer(length + 1)
       .writeChar("C")
       .writeUint32(length)
-      .writeBuffer(commandTagBuffer)
+      .writeUint8Array(commandTagBuffer)
       .writeUint8(0x0)
       .asUint8Array();
   }

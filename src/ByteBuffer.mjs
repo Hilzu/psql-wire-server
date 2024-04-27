@@ -30,9 +30,10 @@ export default class ByteBuffer {
     return this;
   }
 
-  writeBuffer(buffer) {
-    buffer.copy(new Uint8Array(this.#arrayBuffer), this.#offset);
-    this.#offset += buffer.length;
+  writeUint8Array(array) {
+    const targetView = new Uint8Array(this.#arrayBuffer);
+    targetView.set(array, this.#offset);
+    this.#offset += array.length;
     return this;
   }
 
