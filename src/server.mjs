@@ -1,36 +1,25 @@
 import { createServer } from "node:net";
-import ByteBuffer from "./ByteBuffer.mjs";
 import { decodeClientMessage } from "./PgClientMessage.mjs";
+import {
+  AuthenticationResponse,
+  BackendKeyData,
+  ReadyForQuery,
+  SSLNegotiation,
+} from "./PgServerMessage.mjs";
 
-const noSSLResponse = new Uint8Array(["N".charCodeAt(0)]);
-
-const authOkResponse = new ByteBuffer(9)
-  .writeUint8("R".charCodeAt(0))
-  .writeUint32(8)
-  .writeUint32(0)
-  .asUint8Array();
-
-const backendKeyDataResponse = new ByteBuffer(13)
-  .writeUint8("K".charCodeAt(0))
-  .writeUint32(12)
-  .writeUint32(1234)
-  .writeUint32(5678)
-  .asUint8Array();
-
-const readyForQueryResponse = new ByteBuffer(6)
-  .writeUint8("Z".charCodeAt(0))
-  .writeUint32(5)
-  .writeUint8("I".charCodeAt(0))
-  .asUint8Array();
+const writeMessage = (socket, message) => {
+  console.log("Sending message:", message);
+  socket.write(message.encode());
+};
 
 const handleMessage = (msg, socket) => {
-  console.log("Received message", msg);
+  console.log("Received message:", msg);
   if (msg.type === "sslNegotiation") {
-    socket.write(noSSLResponse);
+    writeMessage(socket, new SSLNegotiation());
   } else if (msg.type === "startup") {
-    socket.write(authOkResponse);
-    socket.write(backendKeyDataResponse);
-    socket.write(readyForQueryResponse);
+    writeMessage(socket, new AuthenticationResponse());
+    writeMessage(socket, new BackendKeyData());
+    writeMessage(socket, new ReadyForQuery());
   } else if (msg.type === "quit") {
     socket.end();
   } else {
