@@ -8,6 +8,10 @@ export default class ByteBuffer {
     this.#dataView = new DataView(this.#arrayBuffer);
   }
 
+  writeChar(str) {
+    return this.writeUint8(str.charCodeAt(0));
+  }
+
   writeUint8(int) {
     this.#dataView.setUint8(this.#offset, int);
     this.#offset += 1;
