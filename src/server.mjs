@@ -5,6 +5,7 @@ import {
   BackendKeyData,
   CommandComplete,
   DataRow,
+  Field,
   ReadyForQuery,
   RowDescription,
   SSLNegotiation,
@@ -26,10 +27,15 @@ const handleMessage = (msg, socket) => {
   } else if (msg.type === "quit") {
     socket.end();
   } else if (msg.type === "query") {
-    writeMessage(socket, new RowDescription());
-    writeMessage(socket, new DataRow(["1", "one"]));
-    writeMessage(socket, new DataRow(["2", "two"]));
-    writeMessage(socket, new CommandComplete());
+    const fields = [
+      new Field("pkey", 0, 0, 23, 4, -1, 0),
+      new Field("text", 0, 0, 25, -1, -1, 0),
+      new Field("desc", 0, 0, 25, -1, -1, 0),
+    ];
+    writeMessage(socket, new RowDescription(fields));
+    writeMessage(socket, new DataRow(["111", "oneoneone", "A great row!"]));
+    writeMessage(socket, new DataRow(["2", "two", "Not so great row..."]));
+    writeMessage(socket, new CommandComplete(msg.query));
     writeMessage(socket, new ReadyForQuery());
   } else {
     throw new Error("Unknown message type");

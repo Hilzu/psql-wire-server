@@ -41,60 +41,94 @@ export class ReadyForQuery {
   }
 }
 
-export class RowDescription {
-  encode() {
-    return (
-      new ByteBuffer(51)
-        .writeChar("T")
-        .writeUint32(50) // length
-        .writeUint16(2) // field count
-        // field 1
-        .writeCString("id")
-        .writeUint32(0) // Object ID
-        .writeUint16(0) // Attribute number
-        .writeUint32(23) // Data type OID
-        .writeUint16(4) // Data type size
-        .writeUint32(-1) // Type modifier
-        .writeUint16(0) // Format code
-        // field 2
-        .writeCString("name")
-        .writeUint32(0) // Object ID
-        .writeUint16(0) // Attribute number
-        .writeUint32(25) // Data type OID
-        .writeUint16(-1) // Data type size
-        .writeUint32(-1) // Type modifier
-        .writeUint16(0) // Format code
+export class Field {
+  constructor(
+    name,
+    tableObjectID,
+    columnAttributeNumber,
+    dataTypeOID,
+    dataTypeSize,
+    typeModifier,
+    formatCode,
+  ) {
+    this.name = name;
+    this.tableObjectID = tableObjectID;
+    this.columnAttributeNumber = columnAttributeNumber;
+    this.dataTypeOID = dataTypeOID;
+    this.dataTypeSize = dataTypeSize;
+    this.typeModifier = typeModifier;
+    this.formatCode = formatCode;
+  }
+}
 
-        .asUint8Array()
+export class RowDescription {
+  constructor(fields) {
+    this.fields = fields;
+  }
+  encode() {
+    const nameBuffers = this.fields.map((field) =>
+      Buffer.from(field.name, "utf8"),
     );
+    const length = nameBuffers.reduce(
+      (acc, buffer) => acc + buffer.length + 19,
+      6,
+    );
+    const byteBuffer = new ByteBuffer(length + 1)
+      .writeChar("T")
+      .writeUint32(length)
+      .writeUint16(this.fields.length);
+
+    for (const [index, field] of this.fields.entries()) {
+      byteBuffer
+        .writeBuffer(nameBuffers[index])
+        .writeUint8(0x0)
+        .writeUint32(field.tableObjectID)
+        .writeUint16(field.columnAttributeNumber)
+        .writeUint32(field.dataTypeOID)
+        .writeUint16(field.dataTypeSize)
+        .writeUint32(field.typeModifier)
+        .writeUint16(field.formatCode);
+    }
+
+    return byteBuffer.asUint8Array();
   }
 }
 
 export class DataRow {
-  constructor(columns) {
-    this.columns = columns;
+  constructor(values) {
+    this.values = values;
   }
 
   encode() {
-    return new ByteBuffer(19)
+    const valueBuffers = this.values.map((value) => Buffer.from(value, "utf8"));
+    const length = valueBuffers.reduce(
+      (acc, buffer) => acc + buffer.length + 4,
+      6,
+    );
+    const byteBuffer = new ByteBuffer(length + 1)
       .writeChar("D")
-      .writeUint32(18) // length
-      .writeUint16(2) // column count
-      .writeUint32(1) // length of column 1
-      .writeString(this.columns[0])
-      .writeUint32(3)
-      .writeString(this.columns[1])
-      .asUint8Array();
+      .writeUint32(length)
+      .writeUint16(valueBuffers.length);
+    for (const buffer of valueBuffers) {
+      byteBuffer.writeUint32(buffer.length);
+      byteBuffer.writeBuffer(buffer);
+    }
+    return byteBuffer.asUint8Array();
   }
 }
 
 export class CommandComplete {
-  command = "SELECT 1";
+  constructor(commandTag) {
+    this.commandTag = commandTag;
+  }
   encode() {
-    return new ByteBuffer(14)
+    const commandTagBuffer = Buffer.from(this.commandTag, "utf8");
+    const length = commandTagBuffer.length + 5;
+    return new ByteBuffer(length + 1)
       .writeChar("C")
-      .writeUint32(13)
-      .writeCString(this.command)
+      .writeUint32(length)
+      .writeBuffer(commandTagBuffer)
+      .writeUint8(0x0)
       .asUint8Array();
   }
 }

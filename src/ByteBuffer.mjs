@@ -30,17 +30,9 @@ export default class ByteBuffer {
     return this;
   }
 
-  writeString(str) {
-    const buffer = Buffer.from(str, "utf8");
+  writeBuffer(buffer) {
     buffer.copy(new Uint8Array(this.#arrayBuffer), this.#offset);
     this.#offset += buffer.length;
-    return this;
-  }
-
-  writeCString(str) {
-    this.writeString(str);
-    this.#dataView.setUint8(this.#offset, 0x0);
-    this.#offset += 1;
     return this;
   }
 
