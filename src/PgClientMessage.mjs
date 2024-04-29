@@ -1,21 +1,15 @@
-export const decodeClientMessage = (buffer) => {
-  switch (true) {
-    case PGClientSSLNegotiation.isOfType(buffer):
-      return new PGClientSSLNegotiation();
-
-    case PGClientStartupMessage.isOfType(buffer):
-      return PGClientStartupMessage.decode(buffer);
-
-    case PGClientQuitMessage.isOfType(buffer):
-      return new PGClientQuitMessage();
-
-    case PGClientQueryMessage.isOfType(buffer):
-      return PGClientQueryMessage.decode(buffer);
-
-    default:
-      console.error("Unknown client message:", buffer);
-      throw new Error("Unknown client message");
+export const decodeClientMessage = (b) => {
+  const msg =
+    PGClientSSLNegotiation.isOfType(b) ? new PGClientSSLNegotiation()
+    : PGClientStartupMessage.isOfType(b) ? PGClientStartupMessage.decode(b)
+    : PGClientQuitMessage.isOfType(b) ? new PGClientQuitMessage()
+    : PGClientQueryMessage.isOfType(b) ? PGClientQueryMessage.decode(b)
+    : null;
+  if (msg === null) {
+    console.error("Unknown client message:", b);
+    throw new Error("Unknown client message");
   }
+  return msg;
 };
 
 const getMessageLength = (buffer, byteOffset = 0) => {
